@@ -4,29 +4,31 @@
 #this is a tool for powell--so keep things easy to change--variables at the top and clearly labeled, code commented and understandable
 #model lithium ion and thermal as you guys found--maybe find a more competitive efficiency for thermal online
 #you can use peak and trough pricing as a generalized model--but how can you simulate changes in price?
+
 import random
 import numpy as np
 import matplotlib.pyplot as mtplt
 import seaborn as sns
+from flask import Flask
+app = Flask(__name__)
 
+maxPeakPrice = .11  # Maximum peak price ($/kWh)
+minPeakPrice = .0672  # Minimum peak price ($/kWh)
 
-maxPeakPrice = .11                   #Maximum peak price ($/kWh)
-minPeakPrice = .0672                 #Minimum peak price ($/kWh)
+maxTroughPrice = .0751  # Maximum trough price ($/kWh)
+minTroughPrice = .05  # Minimum trough price ($/kWh)
 
-maxTroughPrice = .0751              #Maximum trough price ($/kWh)
-minTroughPrice = .05                #Minimum trough price ($/kWh)
+maxStorageTime = 5  # Maximum amount of time energy will be stored for
+minStorageTime = 3  # Minimum amount of time energy will be stored for
 
-maxStorageTime = 5                  #Maximum amount of time energy will be stored for
-minStorageTime = 3                  #Minimum amount of time energy will be stored for
+isThermal = True  # If thermal storage is being modeled, set to True. For all other technologies, set to False
+capacity = 2500  # Storage capacity--amount of energy required to charge storage unit (kWh)
+efficiency = .41  # Conversion efficiency of unit (0-1)
+efficiencyLoss = .00037  # Proportion of total storage lost per hour
+heatRecycling = .54  # Thermal only, proportion of lost heat recycled (0-1)
 
-isThermal = True                    #If thermal storage is being modeled, set to True. For all other technologies, set to False
-capacity = 2500                     #Storage capacity--amount of energy required to charge storage unit (kWh)
-efficiency = .41                    #Conversion efficiency of unit (0-1)
-efficiencyLoss = .00037             #Proportion of total storage lost per hour
-heatRecycling = .54                 #Thermal only, proportion of lost heat recycled (0-1)
-
-simulatedDays = 3650                #The number of simulated days each unit will undergo
-numSimulations = 1000                #Number of units to be simulated. The more units, the more statistically accurate results
+simulatedDays = 3650  # The number of simulated days each unit will undergo
+numSimulations = 1000  # Number of units to be simulated. The more units, the more statistically accurate results
 
 
 def simulatedDay():
@@ -63,58 +65,65 @@ def storageUnitProfit(simDays):
 
 
 
+@app.route('/getChart')
+def getChart():
 
-dayArray = []
+    dayArray = []
 
-for days in range(simulatedDays):
-    dayArray.append(days)
+    for days in range(simulatedDays):
+        dayArray.append(days)
 
-allUnits = []
-for sims in range(numSimulations):
+    allUnits = []
+    for sims in range(numSimulations):
 
-    allUnits.append(storageUnitProfit(simulatedDays))
+        allUnits.append(storageUnitProfit(simulatedDays))
 
-for sim in range(numSimulations):
-    mtplt.plot(dayArray,allUnits[sim])
+    for sim in range(numSimulations):
+        mtplt.plot(dayArray,allUnits[sim])
 
-finalProfits = []
+    finalProfits = []
 
-for simulation in range(len(allUnits)):
-    finalProfits.append(allUnits[simulation][simulatedDays-1])
-    #print(allUnits[simulation][simulatedDays-1])
+    for simulation in range(len(allUnits)):
+        finalProfits.append(allUnits[simulation][simulatedDays-1])
+        #print(allUnits[simulation][simulatedDays-1])
 
-ninetyPercentile = np.percentile(finalProfits,90)
-tenPercentile = np.percentile(finalProfits,10)
-median = np.median(finalProfits)
+    ninetyPercentile = np.percentile(finalProfits,90)
+    tenPercentile = np.percentile(finalProfits,10)
+    median = np.median(finalProfits)
 
-print ('Median: $' + str(round(median,2)))
-print('90th Percentile: $' + str(round(ninetyPercentile,2)))
-print('10th Percentile: $' + str(round(tenPercentile,2)))
-
-
-if isThermal:
-    mtplt.title('Monte Carlo Simulation of TES @' + str(efficiency*100) + '% Efficiency, and ' + str(heatRecycling*100) + '% Heat Recycling')
-else:
-    mtplt.title('Monte Carlo Simulation of Energy Storage @' + str(efficiency*100) + '% Efficiency')
-
-mtplt.xlabel('Time (days)')
-mtplt.ylabel('Profit ($)')
-mtplt.draw()
-
-mtplt.figure()
-if isThermal:
-    mtplt.title('Probability Density of TES Profits@' + str(efficiency*100) + '% Efficiency, and ' + str(heatRecycling*100) + '% Heat Recycling')
-else:
-    mtplt.title('Probability Density of Energy Storage Profits @' + str(efficiency*100) + '% Efficiency')
+    print ('Median: $' + str(round(median,2)))
+    print('90th Percentile: $' + str(round(ninetyPercentile,2)))
+    print('10th Percentile: $' + str(round(tenPercentile,2)))
 
 
-sns.distplot(finalProfits, hist =False, kde = True, label = 'Probability Density')
+    if isThermal:
+        mtplt.title('Monte Carlo Simulation of TES @' + str(efficiency*100) + '% Efficiency, and ' + str(heatRecycling*100) + '% Heat Recycling')
+    else:
+        mtplt.title('Monte Carlo Simulation of Energy Storage @' + str(efficiency*100) + '% Efficiency')
 
-mtplt.xlabel('Profit ($)')
-mtplt.ylabel('Probability Density')
+    mtplt.xlabel('Time (days)')
+    mtplt.ylabel('Profit ($)')
+    mtplt.draw()
 
-mtplt.draw()
+    mtplt.figure()
+    if isThermal:
+        mtplt.title('Probability Density of TES Profits@' + str(efficiency*100) + '% Efficiency, and ' + str(heatRecycling*100) + '% Heat Recycling')
+    else:
+        mtplt.title('Probability Density of Energy Storage Profits @' + str(efficiency*100) + '% Efficiency')
+
+
+    sns.distplot(finalProfits, hist =False, kde = True, label = 'Probability Density')
+
+    mtplt.xlabel('Profit ($)')
+    mtplt.ylabel('Probability Density')
+
+    mtplt.draw()
 
 
 
-mtplt.show()
+    mtplt.show()
+    return "done"
+
+
+if __name__ == '__main__':
+    app.run()
