@@ -10,6 +10,8 @@ import numpy as np
 import matplotlib.pyplot as mtplt
 import seaborn as sns
 from flask import Flask, request
+from flask_cors import CORS
+
 app = Flask(__name__)
 
 # maxPeakPrice = .11  # Maximum peak price ($/kWh)
@@ -143,4 +145,5 @@ def getChart():
 
 
 if __name__ == '__main__':
+    CORS(app)
     app.run()
