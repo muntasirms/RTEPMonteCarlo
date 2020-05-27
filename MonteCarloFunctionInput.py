@@ -4,14 +4,31 @@ import random
 import matplotlib.pyplot as mtplt
 import seaborn as sns
 
+#set each of the input dictionaries as a function of one giant dictionary--see kanming
+
 numRandVars = int(input("number of randomized variables: "))   #User input number of ranomdized vars
 numSetVars = int(input("number of set variables: "))           #User input number of set variables
-numSimulatedTime = int(input("Number of unit time per simulation: "))
-numSimulations = int(input("Number of simulations to be run (the more, the more statistically accurate, but longer loading time): "))
 
-randVars = {}       #Randomized variables and their lower and upper bounds
-setVars = {}        #Set variables and their set values
-allVars = {}        #All variables, including randomized variables after their randomized value is determined
+
+#Placeholder data to put in dictionary
+randVarsExample = {"a": [1,100], "s": [2,30]}
+setVarsExample = {"d": 10, "f":20}
+numSimulatedTimeExample = 365
+numSimulationsExample = 1000
+equationExample = 'a**d+s*a'
+
+allData = {"randVars": randVarsExample, "setVars": setVarsExample, "equation": equationExample,"numSimulatedTime": numSimulatedTimeExample,"numSimulations": numSimulationsExample}
+
+randVars = allData.get("randVars")       #Randomized variables and their lower and upper bounds
+setVars = allData.get("setVars")         #Set variables and their set values
+allVars = {}                             #All variables, including randomized variables after their randomized value is determined--values assigned later
+
+numSimulatedTime = allData.get("numSimulatedTime")
+numSimulations = allData.get("numSimulations")
+equation = allData.get("equation")                  #input must be expression
+
+
+
 
 def replace_all(text, dic):
     for i, j in dic.items():
@@ -69,7 +86,6 @@ for n in range(numSetVars):                                                     
 
 #end of placeholder code
 
-equation = input("Input your expression in terms of the inputted variables (Please place all non-algebraic functions in parantheses, Ex sin(x+y), or exp(3*d+p): ") #input must be expression
 functionReplacements = {"sin": "numpy.sin", "cos": "numpy.cos", "tan": "numpy.tan", "log": "numpy.log", "exp": "numpy.exp"}                                              #need to include documentation for how to use certain functions (like log)
 newEquation = replace_all(equation, functionReplacements)
 
@@ -104,5 +120,3 @@ mtplt.draw()
 
 mtplt.show()
 
-#where we are right now: trying to convert input expression into an expression that sympy can interpret.
-#  need to find a way to input values from dictionaries into sympy values
