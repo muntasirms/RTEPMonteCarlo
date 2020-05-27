@@ -4,18 +4,14 @@ import random
 import matplotlib.pyplot as mtplt
 import seaborn as sns
 
-#set each of the input dictionaries as a function of one giant dictionary--see kanming
-
-numRandVars = int(input("number of randomized variables: "))   #User input number of ranomdized vars
-numSetVars = int(input("number of set variables: "))           #User input number of set variables
-
+#https://numexpr.readthedocs.io/projects/NumExpr3/en/latest/user_guide.html numexpr library supported functions
 
 #Placeholder data to put in dictionary
-randVarsExample = {"a": [1,100], "s": [2,30]}
+randVarsExample = {"a": [-200,-100], "s": [-20,-30]}
 setVarsExample = {"d": 10, "f":20}
 numSimulatedTimeExample = 365
 numSimulationsExample = 1000
-equationExample = 'a**d+s*a'
+equationExample = 'a^d-s*a-log(a)'
 
 allData = {"randVars": randVarsExample, "setVars": setVarsExample, "equation": equationExample,"numSimulatedTime": numSimulatedTimeExample,"numSimulations": numSimulationsExample}
 
@@ -71,23 +67,11 @@ def unitSimulation(equationStr, randomVarDict, setVarDict , simulatedTime):     
     # print (valueArray)
     return valueArray
 
-#The following is only necessary in the standalone code--when the frontend just sends dictionaries, this wont be necessary anymore:
 
-for n in range(numRandVars):                                                                                                                                        #Input for all randomized variables, based on the number of variables user specified
-    rangeArray = []
-    newRandKey = input("Enter Your Randomized Variable Name (#" + str(n+1) + "): ")
-    rangeArray.append(float(input(str(newRandKey) + " Lower Bound: ")))
-    rangeArray.append(float(input(str(newRandKey) + " Upper Bound: ")))
-    randVars[newRandKey]= rangeArray
 
-for n in range(numSetVars):                                                                                                                                         #Input for all set variables, based on the number of variables user specified
-    newSetKey = input("Enter Your Set Variable Name (#" + str(n+1) + "): ")
-    setVars[newSetKey] = float(input((str(newSetKey) + " Set Value: ")))
-
-#end of placeholder code
-
-functionReplacements = {"sin": "numpy.sin", "cos": "numpy.cos", "tan": "numpy.tan", "log": "numpy.log", "exp": "numpy.exp"}                                              #need to include documentation for how to use certain functions (like log)
+functionReplacements = { "^": "**"}                                              #need to include documentation for how to use certain functions (like log)
 newEquation = replace_all(equation, functionReplacements)
+print(newEquation)
 
 timeArray = []
 timeArray.append(0)
@@ -97,7 +81,7 @@ for time in range(numSimulatedTime):
 
 allSims = []
 for sims in range(numSimulations):
-    allSims.append(unitSimulation(equation,randVars,setVars,numSimulatedTime))
+    allSims.append(unitSimulation(newEquation,randVars,setVars,numSimulatedTime))
 
 finalProfits = []
 for simulation in range(len(allSims)):
